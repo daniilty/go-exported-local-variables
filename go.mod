@@ -1,4 +1,4 @@
-module go-exported-local-variables
+module github.com/daniilty/go-exported-local-variables
 
 go 1.15
 
