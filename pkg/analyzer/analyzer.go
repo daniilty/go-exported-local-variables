@@ -49,7 +49,7 @@ func checkLocalFuncVariables(node ast.Node, pass *analysis.Pass) bool {
 	}
 
 	funcBody := funcDecl.Body
-	blockPos = []token.Pos{funcBody.Lbrace, funcBody.Rbrace}
+	setBlockPos(funcBody)
 
 	return true
 }
@@ -69,15 +69,27 @@ func checkLocalAssignments(node ast.Node, pass *analysis.Pass) bool {
 		return true
 	}
 
-	variableName := assignment.Lhs[0].(*ast.Ident).Name
-	if token.IsExported(variableName) {
-		pass.Reportf(node.Pos(), "local variable %s should not be exported\n",
-			assignment.Lhs[0])
+	for _, l := range assignment.Lhs {
+		switch l.(type) {
+		case *ast.Ident:
+			variableName := l.(*ast.Ident).Name
+			reportIfExported(variableName, node, pass)
+		case *ast.SelectorExpr:
+			variableName := l.(*ast.SelectorExpr).Sel.Name
+			reportIfExported(variableName, node, pass)
+		}
 	}
 
 	return true
 }
 
-func changeBlockPosByIfBrackets(block *ast.BlockStmt) {
-	blockPos = []token.Pos{block.Lbrace, block.Rbrace}
+func reportIfExported(varName string, node ast.Node, pass *analysis.Pass) {
+	if token.IsExported(varName) {
+		pass.Reportf(node.Pos(), "local variable %s should not be exported\n",
+			varName)
+	}
+}
+
+func setBlockPos(body *ast.BlockStmt) {
+	blockPos = []token.Pos{body.Lbrace, body.Rbrace}
 }
