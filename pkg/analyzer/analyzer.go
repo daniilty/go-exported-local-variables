@@ -74,9 +74,6 @@ func checkLocalAssignments(node ast.Node, pass *analysis.Pass) bool {
 		case *ast.Ident:
 			variableName := l.(*ast.Ident).Name
 			reportIfExported(variableName, node, pass)
-		case *ast.SelectorExpr:
-			variableName := l.(*ast.SelectorExpr).Sel.Name
-			reportIfExported(variableName, node, pass)
 		}
 	}
 
