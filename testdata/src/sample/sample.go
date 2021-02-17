@@ -24,3 +24,9 @@ func ExportedInIfStatement() string {
 func UnExportedInFuncDeclaration(a, b string) {}
 
 func ExportedInFuncDeclaration(A, B string) {}
+
+var DeclaredGlobally string
+
+func ChangingDeclaredGloballyVar() {
+	DeclaredGlobally = "It's so tight here"
+}

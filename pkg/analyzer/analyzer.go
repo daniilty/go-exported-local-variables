@@ -17,13 +17,15 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	helper := initHelper()
+
 	inspect := func(node ast.Node) bool {
 		switch node.(type) {
 		case *ast.FuncDecl:
-			return checkLocalFuncVariables(node, pass)
+			return helper.checkLocalFuncVariables(node, pass)
 		}
 
-		return checkLocalAssignments(node, pass)
+		return helper.checkAssignments(node, pass)
 	}
 
 	for _, f := range pass.Files {
@@ -31,62 +33,4 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
-}
-
-func checkLocalFuncVariables(node ast.Node, pass *analysis.Pass) bool {
-	funcDecl, ok := node.(*ast.FuncDecl)
-	if !ok {
-		return true
-	}
-
-	for _, l := range funcDecl.Type.Params.List {
-		for _, n := range l.Names {
-			if token.IsExported(n.Name) {
-				pass.Reportf(node.Pos(), "param %s in function %s should not be exported\n",
-					n.Name, funcDecl.Name.Name)
-			}
-		}
-	}
-
-	funcBody := funcDecl.Body
-	setBlockPos(funcBody)
-
-	return true
-}
-
-func checkLocalAssignments(node ast.Node, pass *analysis.Pass) bool {
-	if blockPos[0] < 0 || blockPos[1] < 0 {
-		return true
-	}
-
-	assignment, ok := node.(*ast.AssignStmt)
-	if !ok {
-		return true
-	}
-
-	assignmentPos := assignment.Pos()
-	if assignmentPos < blockPos[0] || assignmentPos > blockPos[1] {
-		return true
-	}
-
-	for _, l := range assignment.Lhs {
-		switch l.(type) {
-		case *ast.Ident:
-			variableName := l.(*ast.Ident).Name
-			reportIfExported(variableName, node, pass)
-		}
-	}
-
-	return true
-}
-
-func reportIfExported(varName string, node ast.Node, pass *analysis.Pass) {
-	if token.IsExported(varName) {
-		pass.Reportf(node.Pos(), "local variable %s should not be exported\n",
-			varName)
-	}
-}
-
-func setBlockPos(body *ast.BlockStmt) {
-	blockPos = []token.Pos{body.Lbrace, body.Rbrace}
 }
