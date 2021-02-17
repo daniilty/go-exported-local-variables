@@ -69,9 +69,9 @@ func (h *helper) checkAssignments(node ast.Node, pass *analysis.Pass) bool {
 	}
 
 	for _, l := range assignment.Lhs {
-		switch l.(type) {
+		switch l := l.(type) {
 		case *ast.Ident:
-			variableName := l.(*ast.Ident).Name
+			variableName := l.Name
 			h.reportIfExported(variableName, node, pass)
 		}
 	}
@@ -81,9 +81,9 @@ func (h *helper) checkAssignments(node ast.Node, pass *analysis.Pass) bool {
 
 func (h *helper) checkGlobalAssignments(assignment *ast.AssignStmt) bool {
 	for _, l := range assignment.Lhs {
-		switch l.(type) {
+		switch l := l.(type) {
 		case *ast.Ident:
-			variableName := l.(*ast.Ident).Name
+			variableName := l.Name
 			h.addToGlobalVarsIfExported(variableName)
 		}
 	}

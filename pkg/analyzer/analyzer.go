@@ -2,12 +2,9 @@ package analyzer
 
 import (
 	"go/ast"
-	"go/token"
 
 	"golang.org/x/tools/go/analysis"
 )
-
-var blockPos = []token.Pos{-1, -1}
 
 // Analyzer - represents our linter
 var Analyzer = &analysis.Analyzer{
