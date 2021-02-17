@@ -7,14 +7,14 @@ func AllFine() string {
 }
 
 func Incorrect() string {
-	A := "Oh it seems not so good"
+	A := "Oh it seems not so good" // want `local variable A should not be exported`
 
 	return A
 }
 
 func ExportedInIfStatement() string {
 	if true {
-		A := "Hehe try to find me here"
+		A := "Hehe try to find me here" // want `local variable A should not be exported`
 		return A
 	}
 
@@ -23,7 +23,7 @@ func ExportedInIfStatement() string {
 
 func UnExportedInFuncDeclaration(a, b string) {}
 
-func ExportedInFuncDeclaration(A, B string) {}
+func ExportedInFuncDeclaration(A, B string) {} // want `param A in function ExportedInFuncDeclaration should not be exported` `param B in function ExportedInFuncDeclaration should not be exported`
 
 var DeclaredGlobally string
 
