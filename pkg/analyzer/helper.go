@@ -40,6 +40,19 @@ func (h *helper) checkLocalFuncVariables(node ast.Node, pass *analysis.Pass) boo
 	return true
 }
 
+func (h *helper) checkDeclarations(node ast.Node) bool {
+	declaration, ok := node.(*ast.ValueSpec)
+	if !ok {
+		return true
+	}
+
+	for _, n := range declaration.Names {
+		h.addToGlobalVarsIfExported(n.Name)
+	}
+
+	return true
+}
+
 func (h *helper) checkAssignments(node ast.Node, pass *analysis.Pass) bool {
 	assignment, ok := node.(*ast.AssignStmt)
 	if !ok {

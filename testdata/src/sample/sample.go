@@ -27,6 +27,8 @@ func ExportedInFuncDeclaration(A, B string) {}
 
 var DeclaredGlobally string
 
+var AssignedGlobally = "It will pass"
+
 func ChangingDeclaredGloballyVar() {
 	DeclaredGlobally = "It's so tight here"
 }

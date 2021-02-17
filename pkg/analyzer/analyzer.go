@@ -21,11 +21,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	inspect := func(node ast.Node) bool {
 		switch node.(type) {
+		case *ast.ValueSpec:
+			return helper.checkDeclarations(node)
 		case *ast.FuncDecl:
 			return helper.checkLocalFuncVariables(node, pass)
+		case *ast.AssignStmt:
+			return helper.checkAssignments(node, pass)
 		}
 
-		return helper.checkAssignments(node, pass)
+		return true
 	}
 
 	for _, f := range pass.Files {
