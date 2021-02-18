@@ -19,11 +19,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	inspect := func(node ast.Node) bool {
 		switch node.(type) {
 		case *ast.ValueSpec:
-			return helper.checkDeclarations(node)
+			return helper.checkDeclarations(node, pass)
 		case *ast.FuncDecl:
 			return helper.checkLocalFuncVariables(node, pass)
 		case *ast.AssignStmt:
 			return helper.checkAssignments(node, pass)
+		default:
+			helper.checkIgnoredAndClear(node)
 		}
 
 		return true

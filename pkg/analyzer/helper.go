@@ -8,14 +8,16 @@ import (
 )
 
 type helper struct {
-	blockPos   []token.Pos
-	globalVars []string
+	blockPos    []token.Pos
+	globalVars  []string
+	ignoredVars []string
 }
 
 func initHelper() *helper {
 	return &helper{
-		blockPos:   []token.Pos{-1, -1},
-		globalVars: []string{},
+		blockPos:    []token.Pos{-1, -1},
+		globalVars:  []string{},
+		ignoredVars: []string{},
 	}
 }
 
@@ -40,13 +42,20 @@ func (h *helper) checkLocalFuncVariables(node ast.Node, pass *analysis.Pass) boo
 	return true
 }
 
-func (h *helper) checkDeclarations(node ast.Node) bool {
+func (h *helper) checkDeclarations(node ast.Node, pass *analysis.Pass) bool {
 	declaration, ok := node.(*ast.ValueSpec)
 	if !ok {
 		return true
 	}
 
-	for _, n := range declaration.Names {
+	names := declaration.Names
+
+	declarationPos := declaration.Pos()
+	if declarationPos >= h.blockPos[0] && declarationPos <= h.blockPos[1] {
+		return h.reportAndIgnoreNames(names, node, pass)
+	}
+
+	for _, n := range names {
 		h.addToGlobalVarsIfExported(n.Name)
 	}
 
@@ -91,6 +100,36 @@ func (h *helper) checkGlobalAssignments(assignment *ast.AssignStmt) bool {
 	return true
 }
 
+func (h *helper) reportAndIgnoreNames(names []*ast.Ident, node ast.Node, pass *analysis.Pass) bool {
+	for _, n := range names {
+		h.reportIfExported(n.Name, node, pass)
+		h.ignore(n.Name)
+	}
+
+	return true
+}
+
+func (h *helper) ignore(varName string) {
+	h.ignoredVars = append(h.ignoredVars, varName)
+}
+
+func (h *helper) checkIgnoredAndClear(node ast.Node) {
+	blockStmt, ok := node.(*ast.BlockStmt)
+	if !ok {
+		return
+	}
+
+	if needsToBeIgnored(blockStmt) {
+		return
+	}
+
+	h.clearIgnoredList()
+}
+
+func (h *helper) clearIgnoredList() {
+	h.ignoredVars = []string{}
+}
+
 func (h *helper) setBlockPos(body *ast.BlockStmt) {
 	h.blockPos = []token.Pos{body.Lbrace, body.Rbrace}
 }
@@ -113,13 +152,48 @@ func (h *helper) isDeclaredGlobally(varName string) bool {
 	return false
 }
 
+func (h *helper) isIgnored(varName string) bool {
+	for _, v := range h.ignoredVars {
+		if v != varName {
+			continue
+		}
+
+		return true
+	}
+
+	return false
+}
+
 func (h *helper) reportIfExported(varName string, node ast.Node, pass *analysis.Pass) {
 	if token.IsExported(varName) {
 		if h.isDeclaredGlobally(varName) {
 			return
 		}
 
+		if h.isIgnored(varName) {
+			return
+		}
+
 		pass.Reportf(node.Pos(), "local variable %s should not be exported\n",
 			varName)
 	}
+}
+
+func needsToBeIgnored(block *ast.BlockStmt) bool {
+	for _, l := range block.List {
+		switch l.(type) {
+		case *ast.ForStmt:
+			return true
+		case *ast.SelectStmt:
+			return true
+		case *ast.SwitchStmt:
+			return true
+		case *ast.IfStmt:
+			return true
+		case *ast.TypeSwitchStmt:
+			return true
+		}
+	}
+
+	return false
 }

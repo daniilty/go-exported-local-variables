@@ -40,3 +40,16 @@ var AssignedGlobally = "It will pass"
 func ChangingDeclaredGloballyVar() {
 	DeclaredGlobally = "It's so tight here"
 }
+
+// Name says all for it
+func DeclaredInsideFuncAndInsideFuncDecl(A, b string) []string { // want `param A in function DeclaredInsideFuncAndInsideFuncDecl should not be exported`
+	var F, N string // want `local variable F should not be exported` `local variable N should not be exported`
+	F = "Skip"
+	N = "Skip"
+	B := "Err" // want `local variable B should not be exported`
+	a := "Fine"
+
+	slice := []string{F, N, B, a} // Fine
+
+	return slice
+}

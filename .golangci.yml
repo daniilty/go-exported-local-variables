@@ -1,0 +1,27 @@
+linters-settings:
+  errcheck:
+    check-blank: true
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocyclo
+    - golint
+    - gomnd
+    - gosec
+    - gosimple
+    - misspell
+    - nakedret
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - varcheck
+    - whitespace
+run:
+  skip-dirs:
+    - tests
