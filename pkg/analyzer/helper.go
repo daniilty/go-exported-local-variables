@@ -114,12 +114,16 @@ func (h *helper) ignore(varName string) {
 }
 
 func (h *helper) checkIgnoredAndClear(node ast.Node) {
-	blockStmt, ok := node.(*ast.BlockStmt)
-	if !ok {
+	if node == nil {
 		return
 	}
 
-	if needsToBeIgnored(blockStmt) {
+	if needsToBeIgnored(node) {
+		return
+	}
+
+	_, ok := node.(*ast.BlockStmt)
+	if !ok {
 		return
 	}
 
@@ -179,21 +183,24 @@ func (h *helper) reportIfExported(varName string, node ast.Node, pass *analysis.
 	}
 }
 
-func needsToBeIgnored(block *ast.BlockStmt) bool {
-	for _, l := range block.List {
-		switch l.(type) {
-		case *ast.ForStmt:
-			return true
-		case *ast.SelectStmt:
-			return true
-		case *ast.SwitchStmt:
-			return true
-		case *ast.IfStmt:
-			return true
-		case *ast.TypeSwitchStmt:
-			return true
-		}
+func needsToBeIgnored(node ast.Node) bool {
+	_, ok := node.(*ast.ForStmt)
+	if ok {
+		return true
 	}
+	_, ok = node.(*ast.SelectStmt)
+	if ok {
+		return true
+	}
+	_, ok = node.(*ast.SwitchStmt)
+	if ok {
+		return true
+	}
+	_, ok = node.(*ast.IfStmt)
+	if ok {
+		return true
+	}
+	_, ok = node.(*ast.TypeSwitchStmt)
 
-	return false
+	return ok
 }
